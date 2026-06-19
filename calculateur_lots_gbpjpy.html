@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculateur Lots</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d0f0e; --surface: #141716; --surface2: #1c1f1d;
+    --border: #2a2d2b; --accent: #00e5a0; --accent2: #00b87a;
+    --text: #e8ede9; --text2: #8a9490; --text3: #556058;
+    --loss: #ff4444;
+  }
+  body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 16px 14px 40px; }
+
+  header { text-align: center; margin-bottom: 22px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .logo { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.15em; color: var(--accent); text-transform: uppercase; margin-bottom: 6px; }
+  h1 { font-size: 20px; font-weight: 500; }
+  h1 span { color: var(--accent); }
+  .subtitle { font-size: 11px; color: var(--text3); margin-top: 3px; font-family: 'IBM Plex Mono', monospace; }
+
+  /* SECTION */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+  .section-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: var(--accent); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* DEVISE SELECT */
+  .devise-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .devise-btn { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text2); font-family: 'IBM Plex Mono', monospace; font-size: 12px; padding: 9px 6px; cursor: pointer; text-align: center; transition: all 0.15s; }
+  .devise-btn.active { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 600; }
+
+  /* INPUTS */
+  .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .input-group { display: flex; flex-direction: column; gap: 5px; }
+  label { font-size: 11px; color: var(--text2); font-family: 'IBM Plex Mono', monospace; }
+  input[type="number"] { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 500; padding: 10px 12px; width: 100%; outline: none; transition: border-color 0.2s; -webkit-appearance: none; }
+  input[type="number"]:focus { border-color: var(--accent); }
+  input[type="number"]::placeholder { color: var(--text3); font-size: 14px; }
+
+  .pip-info { font-size: 10px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; text-align: center; padding: 6px 8px; background: var(--surface2); border-radius: 6px; line-height: 1.5; }
+
+  /* COMPTES */
+  .account-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+  .account-card:focus-within { border-color: var(--accent2); }
+  .account-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .account-name { font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+  .account-name.ftmo100 { color: #00e5a0; }
+  .account-name.ftmo50 { color: #5eb8ff; }
+  .account-name.perso { color: #ffb347; }
+  .account-balance-display { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text3); }
+
+  /* RISQUE BUTTONS DANS COMPTE */
+  .risk-row { margin-bottom: 12px; }
+  .risk-label { font-size: 11px; color: var(--text2); font-family: 'IBM Plex Mono', monospace; margin-bottom: 6px; }
+  .risk-btns { display: flex; gap: 6px; }
+  .risk-btn { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text2); font-family: 'IBM Plex Mono', monospace; font-size: 13px; padding: 9px 4px; cursor: pointer; text-align: center; transition: all 0.15s; }
+  .risk-btn.active { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 600; }
+
+  /* RÉSULTAT LOT */
+  .lot-result { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; }
+  .lot-label { font-size: 11px; color: var(--text2); font-family: 'IBM Plex Mono', monospace; }
+  .lot-details { font-size: 10px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; margin-top: 3px; }
+  .lot-value { font-family: 'IBM Plex Mono', monospace; font-size: 28px; font-weight: 600; letter-spacing: -0.02em; color: var(--text3); transition: color 0.3s; }
+  .lot-value.calculated { color: var(--accent); }
+
+  /* BOUTON */
+  .calc-btn { width: 100%; background: var(--accent); border: none; border-radius: 10px; color: var(--bg); font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600; letter-spacing: 0.08em; padding: 16px; cursor: pointer; margin-bottom: 12px; text-transform: uppercase; transition: background 0.2s, transform 0.1s; }
+  .calc-btn:active { transform: scale(0.98); background: var(--accent2); }
+
+  /* RÉSUMÉ */
+  .summary { display: none; }
+  .summary.visible { display: block; }
+  .summary-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-key { color: var(--text2); font-family: 'IBM Plex Mono', monospace; }
+  .summary-val { font-family: 'IBM Plex Mono', monospace; font-weight: 600; color: var(--accent); }
+  .summary-val.loss { color: var(--loss); }
+
+  /* HISTORIQUE */
+  .history { display: none; }
+  .history.visible { display: block; }
+  .history-item { padding: 8px 0; border-bottom: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text2); }
+  .history-item:last-child { border-bottom: none; }
+  .history-head { margin-bottom: 3px; }
+  .history-lots { color: var(--accent); font-size: 11px; }
+  .clear-btn { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; font-size: 10px; padding: 4px 10px; cursor: pointer; margin-top: 10px; float: right; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Quartiles 1AM NY · Calculateur</div>
+  <h1>Taille de <span>Lot</span></h1>
+  <div class="subtitle">3 comptes · calcul instantané</div>
+</header>
+
+<!-- PARAMÈTRES GLOBAUX -->
+<div class="card">
+  <div class="section-label">Paire & paramètres</div>
+
+  <!-- DEVISE -->
+  <div class="risk-label">Paire de devises</div>
+  <div class="devise-row" style="margin-bottom:14px;">
+    <button class="devise-btn active" onclick="setDevise('GBPJPY', 0.66, this)">GBPJPY</button>
+    <button class="devise-btn" onclick="setDevise('USDJPY', 0.91, this)">USDJPY</button>
+    <button class="devise-btn" onclick="setDevise('EURUSD', 10.0, this)">EURUSD</button>
+    <button class="devise-btn" onclick="setDevise('GBPUSD', 10.0, this)">GBPUSD</button>
+  </div>
+
+  <div class="input-row">
+    <div class="input-group">
+      <label>SL (pips)</label>
+      <input type="number" id="sl_pips" placeholder="20" value="20" min="1">
+    </div>
+    <div class="input-group">
+      <label>TP (pips)</label>
+      <input type="number" id="tp_pips" placeholder="30" value="30" min="1">
+    </div>
+  </div>
+
+  <div class="pip-info" id="pip_info">
+    📌 GBPJPY · Valeur pip ≈ 0.66 USD/pip/lot standard
+  </div>
+</div>
+
+<!-- COMPTE FTMO 100K -->
+<div class="account-card">
+  <div class="account-header">
+    <div class="account-name ftmo100">FTMO 100K</div>
+    <div class="account-balance-display" id="display_100k">100 000 $</div>
+  </div>
+  <div class="input-group" style="margin-bottom:10px;">
+    <label>Capital actuel ($)</label>
+    <input type="number" id="cap_100k" value="100000" min="1" oninput="updateDisplay('100k')">
+  </div>
+  <div class="risk-row">
+    <div class="risk-label">Risque par trade</div>
+    <div class="risk-btns">
+      <button class="risk-btn" onclick="setAccountRisk('100k', 0.5, this)">0.5%</button>
+      <button class="risk-btn active" onclick="setAccountRisk('100k', 1.0, this)">1.0%</button>
+      <button class="risk-btn" onclick="setAccountRisk('100k', 1.5, this)">1.5%</button>
+      <button class="risk-btn" onclick="setAccountRisk('100k', 2.0, this)">2.0%</button>
+    </div>
+  </div>
+  <div class="lot-result">
+    <div>
+      <div class="lot-label">Taille de lot</div>
+      <div class="lot-details" id="detail_100k">—</div>
+    </div>
+    <div class="lot-value" id="lot_100k">—</div>
+  </div>
+</div>
+
+<!-- COMPTE FTMO 50K -->
+<div class="account-card">
+  <div class="account-header">
+    <div class="account-name ftmo50">FTMO 50K</div>
+    <div class="account-balance-display" id="display_50k">50 000 $</div>
+  </div>
+  <div class="input-group" style="margin-bottom:10px;">
+    <label>Capital actuel ($)</label>
+    <input type="number" id="cap_50k" value="50000" min="1" oninput="updateDisplay('50k')">
+  </div>
+  <div class="risk-row">
+    <div class="risk-label">Risque par trade</div>
+    <div class="risk-btns">
+      <button class="risk-btn" onclick="setAccountRisk('50k', 0.5, this)">0.5%</button>
+      <button class="risk-btn active" onclick="setAccountRisk('50k', 1.0, this)">1.0%</button>
+      <button class="risk-btn" onclick="setAccountRisk('50k', 1.5, this)">1.5%</button>
+      <button class="risk-btn" onclick="setAccountRisk('50k', 2.0, this)">2.0%</button>
+    </div>
+  </div>
+  <div class="lot-result">
+    <div>
+      <div class="lot-label">Taille de lot</div>
+      <div class="lot-details" id="detail_50k">—</div>
+    </div>
+    <div class="lot-value" id="lot_50k">—</div>
+  </div>
+</div>
+
+<!-- COMPTE PERSO -->
+<div class="account-card">
+  <div class="account-header">
+    <div class="account-name perso">Compte Perso</div>
+    <div class="account-balance-display" id="display_perso">2 000 $</div>
+  </div>
+  <div class="input-group" style="margin-bottom:10px;">
+    <label>Capital actuel ($)</label>
+    <input type="number" id="cap_perso" value="2000" min="1" oninput="updateDisplay('perso')">
+  </div>
+  <div class="risk-row">
+    <div class="risk-label">Risque par trade</div>
+    <div class="risk-btns">
+      <button class="risk-btn" onclick="setAccountRisk('perso', 0.5, this)">0.5%</button>
+      <button class="risk-btn active" onclick="setAccountRisk('perso', 1.0, this)">1.0%</button>
+      <button class="risk-btn" onclick="setAccountRisk('perso', 1.5, this)">1.5%</button>
+      <button class="risk-btn" onclick="setAccountRisk('perso', 2.0, this)">2.0%</button>
+    </div>
+  </div>
+  <div class="lot-result">
+    <div>
+      <div class="lot-label">Taille de lot</div>
+      <div class="lot-details" id="detail_perso">—</div>
+    </div>
+    <div class="lot-value" id="lot_perso">—</div>
+  </div>
+</div>
+
+<button class="calc-btn" onclick="calculate()">⚡ Calculer les lots</button>
+
+<!-- RÉSUMÉ -->
+<div class="card summary" id="summary">
+  <div class="section-label">Résumé</div>
+  <div class="summary-row"><span class="summary-key">Paire</span><span class="summary-val" id="sum_devise">GBPJPY</span></div>
+  <div class="summary-row"><span class="summary-key">RR effectif</span><span class="summary-val" id="sum_rr">—</span></div>
+  <div class="summary-row"><span class="summary-key">Total risqué</span><span class="summary-val loss" id="sum_total_risk">—</span></div>
+  <div class="summary-row"><span class="summary-key">Gain potentiel total</span><span class="summary-val" id="sum_total_gain">—</span></div>
+  <div class="summary-row"><span class="summary-key">SL / TP</span><span class="summary-val" id="sum_sltp">—</span></div>
+</div>
+
+<!-- HISTORIQUE -->
+<div class="card history" id="history">
+  <div class="section-label">Historique</div>
+  <div id="history_list"></div>
+  <button class="clear-btn" onclick="clearHistory()">Effacer</button>
+  <div style="clear:both"></div>
+</div>
+
+<script>
+  // État
+  const accountRisks = { '100k': 1.0, '50k': 1.0, 'perso': 1.0 };
+  let currentDevise = 'GBPJPY';
+  let currentPipVal = 0.66;
+  let historyItems = [];
+
+  const PIP_VALUES = {
+    'GBPJPY': 0.66,
+    'USDJPY': 0.91,
+    'EURUSD': 10.0,
+    'GBPUSD': 10.0,
+  };
+
+  function setDevise(devise, pipVal, btn) {
+    currentDevise = devise;
+    currentPipVal = pipVal;
+    document.querySelectorAll('.devise-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const isJpy = devise.includes('JPY');
+    document.getElementById('pip_info').textContent =
+      `📌 ${devise} · Valeur pip ≈ ${pipVal} USD/pip/lot standard`;
+    // Recalcul auto si déjà calculé
+    if (document.getElementById('lot_100k').classList.contains('calculated')) calculate();
+  }
+
+  function setAccountRisk(acc, val, btn) {
+    accountRisks[acc] = val;
+    const container = btn.closest('.risk-btns');
+    container.querySelectorAll('.risk-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (document.getElementById('lot_' + acc).classList.contains('calculated')) calculate();
+  }
+
+  function updateDisplay(acc) {
+    const val = parseFloat(document.getElementById('cap_' + acc).value) || 0;
+    document.getElementById('display_' + acc).textContent = val.toLocaleString('fr-FR') + ' $';
+  }
+
+  function calcLot(capital, riskPct, slPips) {
+    const risqueUSD = capital * (riskPct / 100);
+    // Pour JPY pairs: 1 pip = 0.01, valeur pip/lot standard ≈ pipVal en USD
+    const lot = risqueUSD / (slPips * currentPipVal * 10);
+    return Math.floor(lot * 100) / 100;
+  }
+
+  function calculate() {
+    const slPips = parseFloat(document.getElementById('sl_pips').value);
+    const tpPips = parseFloat(document.getElementById('tp_pips').value);
+    if (!slPips || slPips <= 0) { alert('Entre un SL valide'); return; }
+
+    const accounts = [
+      { id: '100k', label: 'FTMO 100K' },
+      { id: '50k',  label: 'FTMO 50K' },
+      { id: 'perso', label: 'Perso' },
+    ];
+
+    let totalRisk = 0, totalGain = 0;
+    let histEntry = { devise: currentDevise, sl: slPips, tp: tpPips, lots: {} };
+
+    accounts.forEach(acc => {
+      const capital = parseFloat(document.getElementById('cap_' + acc.id).value) || 0;
+      const risk = accountRisks[acc.id];
+      const lot = calcLot(capital, risk, slPips);
+      const risqueUSD = capital * (risk / 100);
+      const gainUSD = risqueUSD * (tpPips / slPips);
+
+      totalRisk += risqueUSD;
+      totalGain += gainUSD;
+
+      const lotEl = document.getElementById('lot_' + acc.id);
+      const detailEl = document.getElementById('detail_' + acc.id);
+      lotEl.textContent = lot.toFixed(2);
+      lotEl.classList.add('calculated');
+      detailEl.textContent = `Risque: ${risqueUSD.toFixed(0)}$ · TP: +${gainUSD.toFixed(0)}$ · ${risk}%`;
+      histEntry.lots[acc.label] = lot.toFixed(2);
+    });
+
+    const rr = (tpPips / slPips).toFixed(2);
+    document.getElementById('sum_devise').textContent = currentDevise;
+    document.getElementById('sum_rr').textContent = rr + 'R';
+    document.getElementById('sum_total_risk').textContent = '-' + totalRisk.toFixed(0) + ' $';
+    document.getElementById('sum_total_gain').textContent = '+' + totalGain.toFixed(0) + ' $';
+    document.getElementById('sum_sltp').textContent = slPips + 'p SL / ' + tpPips + 'p TP';
+    document.getElementById('summary').classList.add('visible');
+
+    historyItems.unshift(histEntry);
+    if (historyItems.length > 5) historyItems.pop();
+    renderHistory();
+    document.getElementById('history').classList.add('visible');
+  }
+
+  function renderHistory() {
+    const list = document.getElementById('history_list');
+    list.innerHTML = historyItems.map(h => {
+      const rr = (h.tp / h.sl).toFixed(1);
+      const lots = Object.entries(h.lots)
+        .map(([k, v]) => `${k.replace('FTMO ','')}: <span class="history-lots">${v}</span>`)
+        .join(' · ');
+      return `<div class="history-item">
+        <div class="history-head">${h.devise} · SL ${h.sl}p / TP ${h.tp}p · RR ${rr}</div>
+        <div>${lots}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function clearHistory() {
+    historyItems = [];
+    document.getElementById('history').classList.remove('visible');
+  }
+
+  // Enter pour calculer
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') calculate();
+  });
+</script>
+</body>
+</html>
