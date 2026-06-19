@@ -1,0 +1,1 @@
+# Trading_lot_size
